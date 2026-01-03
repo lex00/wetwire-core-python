@@ -12,7 +12,6 @@ Every session produces a RESULTS.md documenting the process:
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 from wetwire_core.agent.scoring import Score
 
@@ -146,8 +145,8 @@ class ResultsWriter:
         if results.score:
             lines.append("## Score")
             lines.append("")
-            lines.append(f"| Dimension | Score |")
-            lines.append(f"|-----------|-------|")
+            lines.append("| Dimension | Score |")
+            lines.append("|-----------|-------|")
             lines.append(f"| Completeness | {results.score.completeness}/3 |")
             lines.append(f"| Lint Quality | {results.score.lint_quality}/3 |")
             lines.append(f"| Code Quality | {results.score.code_quality}/3 |")

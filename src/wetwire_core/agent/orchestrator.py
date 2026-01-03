@@ -10,7 +10,7 @@ and the Runner (AI with CLI tools). It handles:
 """
 
 from dataclasses import dataclass, field
-from typing import Protocol, Any
+from typing import Any, Protocol
 
 
 class DeveloperProtocol(Protocol):
