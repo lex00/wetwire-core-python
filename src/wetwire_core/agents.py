@@ -8,7 +8,6 @@ This module provides:
 
 from __future__ import annotations
 
-import json
 import os
 import subprocess
 import sys
@@ -20,7 +19,6 @@ from typing import Any
 import anthropic
 
 from wetwire_core.runner import Message
-
 
 # System prompts
 DEVELOPER_SYSTEM_PROMPT = """You are a developer who wants to create AWS infrastructure using wetwire.
@@ -418,10 +416,7 @@ class RunnerAgent:
 
         # For existing packages, PYTHONPATH is parent of package_dir
         # For new packages, it's output_dir
-        if self.existing_package:
-            pythonpath = str(self.package_dir.parent)
-        else:
-            pythonpath = str(self.output_dir)
+        pythonpath = str(self.package_dir.parent) if self.existing_package else str(self.output_dir)
 
         result = subprocess.run(
             [sys.executable, "-m", "wetwire_aws.cli", "build", "-m", self.package_name, "-f", "yaml"],
@@ -513,7 +508,6 @@ class RunnerAgent:
         tool_results: list[ToolResult] = []
         response_text = ""
         current_tool_name = None
-        current_tool_input = {}
 
         with self.client.messages.stream(
             model=self.model,
@@ -526,7 +520,6 @@ class RunnerAgent:
                 if event.type == "content_block_start":
                     if event.content_block.type == "tool_use":
                         current_tool_name = event.content_block.name
-                        current_tool_input = {}
                         if on_tool_start:
                             on_tool_start(current_tool_name, {})
 
@@ -540,10 +533,9 @@ class RunnerAgent:
                         # Accumulate tool input JSON
                         pass  # We'll get the full input from the final message
 
-                elif event.type == "content_block_stop":
-                    if current_tool_name:
-                        # Tool block finished - execute it
-                        current_tool_name = None
+                elif event.type == "content_block_stop" and current_tool_name:
+                    # Tool block finished - execute it
+                    current_tool_name = None
 
             # Get the final message to extract tool uses
             final_message = stream.get_final_message()
@@ -606,7 +598,6 @@ class AIConversationHandler:
         # Track tool usage - more aggressive enforcement
         lint_called = False
         lint_passed = False
-        build_called = False
         pending_lint = False  # True when write_file called but lint not yet run
 
         for turn in range(self.max_turns):
@@ -629,7 +620,6 @@ class AIConversationHandler:
                         Message(role="tool", content=f"[lint {status}] {result.content}")
                     )
                 elif result.tool_name == "run_build":
-                    build_called = True
                     # Add build result to conversation for visibility
                     build_ok = not result.is_error
                     status = "OK" if build_ok else "FAIL"
@@ -653,15 +643,15 @@ class AIConversationHandler:
 
             # ENFORCEMENT: If runner talks about "fixing" without running lint, force lint
             fix_keywords = ["let me fix", "i'll fix", "fixing", "i need to fix", "let me correct"]
-            if response_text and any(kw in response_text.lower() for kw in fix_keywords):
-                if pending_lint or not lint_called:
-                    current_message = (
-                        "STOP: You mentioned fixing but did not run the linter first. "
-                        "You MUST call run_lint to see actual errors before attempting fixes. "
-                        "Call run_lint now."
-                    )
-                    self.messages.append(Message(role="system", content=current_message))
-                    continue
+            mentions_fix = response_text and any(kw in response_text.lower() for kw in fix_keywords)
+            if mentions_fix and (pending_lint or not lint_called):
+                current_message = (
+                    "STOP: You mentioned fixing but did not run the linter first. "
+                    "You MUST call run_lint to see actual errors before attempting fixes. "
+                    "Call run_lint now."
+                )
+                self.messages.append(Message(role="system", content=current_message))
+                continue
 
             # Check for questions to developer
             question = None
@@ -820,9 +810,7 @@ class InteractiveConversationHandler:
                 # Truncate build output
                 content = result.content[:300] + "..." if len(result.content) > 300 else result.content
                 print(f"\033[90m[{name}] {status}: {content}\033[0m", flush=True)
-            elif name == "init_package":
-                print(f"\033[90m[{name}] {result.content}\033[0m", flush=True)
-            elif name == "write_file":
+            elif name == "init_package" or name == "write_file":
                 print(f"\033[90m[{name}] {result.content}\033[0m", flush=True)
             elif name == "read_file":
                 # Truncate file content display
@@ -831,7 +819,7 @@ class InteractiveConversationHandler:
 
         print("\n\033[1mRunner:\033[0m ", end="", flush=True)
 
-        for turn in range(self.max_turns):
+        for _turn in range(self.max_turns):
             # Runner's turn with streaming
             response_text, tool_results = runner.run_turn_streaming(
                 current_message,
