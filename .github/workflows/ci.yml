@@ -30,6 +30,9 @@ jobs:
       - name: Lint with ruff
         run: ruff check .
 
+      - name: Type check with ty
+        run: ty check src/
+
       - name: Run tests
         run: pytest
         continue-on-error: true

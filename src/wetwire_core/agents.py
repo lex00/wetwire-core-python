@@ -12,9 +12,10 @@ import os
 import subprocess
 import sys
 import tempfile
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import anthropic
 
@@ -487,9 +488,9 @@ class RunnerAgent:
     def run_turn_streaming(
         self,
         developer_message: str | None = None,
-        on_text: callable = None,
-        on_tool_start: callable = None,
-        on_tool_end: callable = None,
+        on_text: Callable[[str], Any] | None = None,
+        on_tool_start: Callable[[str, dict[str, Any]], Any] | None = None,
+        on_tool_end: Callable[[str, ToolResult], Any] | None = None,
     ) -> tuple[str, list[ToolResult]]:
         """Run one turn with streaming output.
 
@@ -513,8 +514,8 @@ class RunnerAgent:
             model=self.model,
             max_tokens=4096,
             system=RUNNER_SYSTEM_PROMPT,
-            tools=self.get_tools(),
-            messages=self.conversation,
+            tools=cast(Any, self.get_tools()),
+            messages=cast(Any, self.conversation),
         ) as stream:
             for event in stream:
                 if event.type == "content_block_start":
