@@ -30,4 +30,4 @@ from wetwire_core.agent.orchestrator import Orchestrator
 
 ## License
 
-Apache License 2.0
+MIT
