@@ -1,6 +1,5 @@
 """Tests for agent.scoring module."""
 
-
 from wetwire_core.agent.scoring import (
     Rating,
     Score,
@@ -172,9 +171,7 @@ class TestScoreCompleteness:
 
     def test_all_resources_present(self):
         """Test that EXCELLENT is returned when all resources are present."""
-        rating = score_completeness(
-            produced_package=True, missing_resources=0, total_resources=5
-        )
+        rating = score_completeness(produced_package=True, missing_resources=0, total_resources=5)
         assert rating == Rating.EXCELLENT
 
     def test_most_resources_present(self):

@@ -10,7 +10,10 @@ from wetwire_core.agent.personas import (
     TERSE,
     VERBOSE,
     Persona,
+    all_personas,
+    get_persona,
     load_persona,
+    persona_names,
 )
 
 
@@ -141,3 +144,70 @@ class TestBuiltInPersonas:
         assert PERSONAS["expert"] is EXPERT
         assert PERSONAS["terse"] is TERSE
         assert PERSONAS["verbose"] is VERBOSE
+
+
+class TestGetPersona:
+    """Tests for get_persona function (alias for load_persona)."""
+
+    def test_get_persona_returns_persona(self):
+        """Test that get_persona returns the correct persona."""
+        persona = get_persona("beginner")
+        assert persona.name == "beginner"
+
+    def test_get_persona_same_as_load_persona(self):
+        """Test that get_persona is equivalent to load_persona."""
+        assert get_persona("expert") is load_persona("expert")
+
+    def test_get_persona_invalid_raises_error(self):
+        """Test that get_persona raises ValueError for invalid name."""
+        with pytest.raises(ValueError):
+            get_persona("nonexistent")
+
+
+class TestAllPersonas:
+    """Tests for all_personas function."""
+
+    def test_all_personas_returns_list(self):
+        """Test that all_personas returns a list."""
+        personas = all_personas()
+        assert isinstance(personas, list)
+
+    def test_all_personas_returns_5_personas(self):
+        """Test that all_personas returns exactly 5 personas."""
+        personas = all_personas()
+        assert len(personas) == 5
+
+    def test_all_personas_contains_all_types(self):
+        """Test that all_personas contains all persona types."""
+        personas = all_personas()
+        names = {p.name for p in personas}
+        assert names == {"beginner", "intermediate", "expert", "terse", "verbose"}
+
+    def test_all_personas_returns_persona_objects(self):
+        """Test that all_personas returns Persona instances."""
+        personas = all_personas()
+        assert all(isinstance(p, Persona) for p in personas)
+
+
+class TestPersonaNames:
+    """Tests for persona_names function."""
+
+    def test_persona_names_returns_list(self):
+        """Test that persona_names returns a list."""
+        names = persona_names()
+        assert isinstance(names, list)
+
+    def test_persona_names_returns_5_names(self):
+        """Test that persona_names returns exactly 5 names."""
+        names = persona_names()
+        assert len(names) == 5
+
+    def test_persona_names_contains_all_types(self):
+        """Test that persona_names contains all persona names."""
+        names = persona_names()
+        assert set(names) == {"beginner", "intermediate", "expert", "terse", "verbose"}
+
+    def test_persona_names_returns_strings(self):
+        """Test that persona_names returns string values."""
+        names = persona_names()
+        assert all(isinstance(n, str) for n in names)
