@@ -23,15 +23,19 @@ else:
     logger = logging.getLogger("wetwire.mcp")
 
 # Try to import MCP, but handle gracefully if not installed
+MCP_AVAILABLE = False
+_Server: type[Any] | None = None
+_stdio_server: Callable[..., Any] | None = None
+
 try:
-    from mcp.server import Server
-    from mcp.server.stdio import stdio_server
+    from mcp.server import Server as _MCPServer
+    from mcp.server.stdio import stdio_server as _mcp_stdio_server
 
     MCP_AVAILABLE = True
+    _Server = _MCPServer
+    _stdio_server = _mcp_stdio_server
 except ImportError:
-    MCP_AVAILABLE = False
-    Server = None  # type: ignore[misc, assignment]
-    stdio_server = None  # type: ignore[assignment]
+    pass
 
 
 def get_install_instructions(package_name: str) -> str:
@@ -76,12 +80,12 @@ def create_server(name: str) -> Any | None:
     Returns:
         Server instance if MCP is available, None otherwise.
     """
-    if not MCP_AVAILABLE:
+    if not MCP_AVAILABLE or _Server is None:
         logger.warning("MCP is not installed. Server creation skipped.")
         return None
 
     logger.debug(f"Creating MCP server: {name}")
-    return Server(name)
+    return _Server(name)
 
 
 def register_tool(
@@ -131,12 +135,12 @@ async def run_server(server: Any | None) -> None:
     Args:
         server: MCP server instance (or None if MCP unavailable).
     """
-    if server is None or not MCP_AVAILABLE:
+    if server is None or not MCP_AVAILABLE or _stdio_server is None:
         logger.error("Cannot run server: MCP is not available")
         return
 
     logger.info("Starting MCP server...")
-    async with stdio_server() as (read_stream, write_stream):
+    async with _stdio_server() as (read_stream, write_stream):
         await server.run(read_stream, write_stream, server.create_initialization_options())
 
 
