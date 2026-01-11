@@ -28,8 +28,8 @@ _Server: type[Any] | None = None
 _stdio_server: Callable[..., Any] | None = None
 
 try:
-    from mcp.server import Server as _MCPServer
-    from mcp.server.stdio import stdio_server as _mcp_stdio_server
+    from mcp.server import Server as _MCPServer  # type: ignore[import-not-found]
+    from mcp.server.stdio import stdio_server as _mcp_stdio_server  # type: ignore[import-not-found]
 
     MCP_AVAILABLE = True
     _Server = _MCPServer
