@@ -114,6 +114,28 @@ def load_persona(name: str) -> Persona:
     return PERSONAS[name]
 
 
+# Alias for load_persona to match spec
+get_persona = load_persona
+
+
+def all_personas() -> list[Persona]:
+    """Get all built-in personas.
+
+    Returns:
+        List of all Persona objects.
+    """
+    return list(PERSONAS.values())
+
+
+def persona_names() -> list[str]:
+    """Get names of all built-in personas.
+
+    Returns:
+        List of persona name strings.
+    """
+    return list(PERSONAS.keys())
+
+
 def load_persona_from_file(path: Path) -> Persona:
     """Load a custom persona from a markdown file.
 

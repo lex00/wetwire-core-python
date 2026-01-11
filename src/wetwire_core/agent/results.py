@@ -90,7 +90,7 @@ class ResultsWriter:
         lines = [
             "# Package Generation Results",
             "",
-            f"**Prompt:** \"{results.prompt}\"",
+            f'**Prompt:** "{results.prompt}"',
             f"**Package:** {results.package_name}",
             f"**Domain:** {results.domain}",
             f"**Date:** {results.started_at.strftime('%Y-%m-%d')}",
@@ -126,8 +126,8 @@ class ResultsWriter:
         lines.append("")
         if results.questions:
             for i, q in enumerate(results.questions, 1):
-                lines.append(f"{i}. **Runner:** \"{q.runner_question}\"")
-                lines.append(f"   **Developer:** \"{q.developer_response}\"")
+                lines.append(f'{i}. **Runner:** "{q.runner_question}"')
+                lines.append(f'   **Developer:** "{q.developer_response}"')
                 lines.append("")
         else:
             lines.append("_No questions asked_")

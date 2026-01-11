@@ -78,7 +78,9 @@ class Score:
         return self.total >= 6
 
 
-def score_completeness(produced_package: bool, missing_resources: int, total_resources: int) -> Rating:
+def score_completeness(
+    produced_package: bool, missing_resources: int, total_resources: int
+) -> Rating:
     """Score completeness dimension.
 
     Args:
